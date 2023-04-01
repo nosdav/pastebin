@@ -97,7 +97,10 @@
     <div id="container">
       <h1>NosDAV</h1>
       <form onsubmit="return false;">
-        <label for="content">Paste your text here:</label>
+        <label for="content"
+          >Paste Text Below |
+          <a href="#" id="download" target="_blank">Download</a></label
+        >
         <textarea
           id="file-content"
           placeholder="Load..."
@@ -124,7 +127,7 @@
 
     <script>
       const serverUrl = 'https://nostr.rocks:3008'
-      var userHex, filename, contentType
+      var userHex, filename, contentType, path
       var isJson = false
 
       const fileContent = document.getElementById('file-content')
@@ -144,14 +147,19 @@
         if (checkbox.checked) {
           isJson = true
           filename = 'paste.json'
+          path = `${serverUrl}/${userHex}/${filename}`
+          document.getElementById('download').setAttribute('href', path)
           contentType = 'application/json'
         } else {
           isJson = false
           filename = 'paste.txt'
+          path = `${serverUrl}/${userHex}/${filename}`
           contentType = 'text/plain'
+          document.getElementById('download').setAttribute('href', path)
+          contentType = 'application/json'
         }
 
-        fetch(`${serverUrl}/${userHex}/${filename}`, {
+        fetch(path, {
           headers: {
             Authorization: `Nostr ${userHex}`
           }
@@ -218,6 +226,7 @@
       const login = async () => {
         userHex = await window.nostr.getPublicKey()
         alert(`Logged in with public key: ${userHex}`)
+        loadFile()
       }
 
       loadBtn.addEventListener('click', loadFile)

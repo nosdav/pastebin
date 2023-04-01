@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple NosDAV Client</title>
+    <style>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #F8F8F8;
+      }
+
+      #container {
+        width: 60%;
+        margin: 0 auto;
+        background-color: #FFFFFF;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        text-align: center;
+        color: #666666;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666666;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: none;
+        background-color: #F2F2F2;
+      }
+
+      button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        color: #FFFFFF;
+        background-color: #FFA500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin: 5px;
+      }
+
+      button:hover {
+        background-color: #FF8C00;
+      }
+
+      #save, #load {
+        background-color: #4CAF50;
+      }
+
+      #save:hover, #load:hover {
+        background-color: #3E8E41;
+      }
+
+      #login {
+        background-color: #008CBA;
+      }
+
+      #login:hover {
+        background-color: #006F8E;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: none;
+        background-color: #F2F2F2;
+        margin-bottom: 10px;
+      }
+
+    </style>      
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>NosDAV</h1>
+      <form onsubmit="return false;">
+        <label for="content">Paste your text here:</label>
+        <textarea id="file-content" placeholder="Load..." name="content" rows="10"></textarea>
+        <div>
+          <button id="load">Load</button>
+          <button id="save">Save</button>
+          <button id="login">Login</button>
+        </div>
+      </form>
+    </div>
+
+
+    <script>
+      const serverUrl = 'http://nostr.rocks:3008'
+      var userHex
+
+      const fileContent = document.getElementById('file-content')
+      const loadBtn = document.getElementById('load')
+      const saveBtn = document.getElementById('save')
+      const loginBtn = document.getElementById('login')
+
+      // Load the file content from the server
+      const loadFile = () => {
+        if (!userHex) {
+          alert('Please login first')
+          return
+        }
+
+        fetch(`${serverUrl}/${userHex}/paste.txt`, {
+          headers: {
+            Authorization: `Nostr ${userHex}`
+          }
+        })
+          .then(response => {
+            if (response.status === 200) {
+              return response.text()
+            } else {
+              throw new Error('Failed to load file content')
+            }
+          })
+          .then(text => {
+            fileContent.value = text
+            fileContent.placeholder = ''
+          })
+          .catch(error => {
+            console.error(error)
+            fileContent.placeholder = 'Error loading file content'
+          })
+      }
+
+      // Save the new text to the server
+      const saveFile = () => {
+        if (!userHex) {
+          alert('Please login first')
+          return
+        }
+
+        const text = fileContent.value
+
+        fetch(`${serverUrl}/${userHex}/paste.txt`, {
+          method: 'PUT',
+          body: text,
+          headers: {
+            Authorization: `Nostr ${userHex}`,
+            'Content-Type': 'text/plain',
+            'Content-Length': text.length
+          }
+        })
+          .then(response => {
+            if (response.status === 201) {
+              alert('File saved successfully')
+            } else {
+              throw new Error('Failed to save file')
+            }
+          })
+          .catch(error => {
+            console.error(error)
+            alert('Error saving file')
+          })
+      }
+
+      // Login using Nostr
+      const login = async () => {
+        userHex = await window.nostr.getPublicKey()
+        alert(`Logged in with public key: ${userHex}`)
+      }
+
+      loadBtn.addEventListener('click', loadFile)
+      saveBtn.addEventListener('click', saveFile)
+      loginBtn.addEventListener('click', login)
+    </script>
+  </body>
+</html>

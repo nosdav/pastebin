@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple NosDAV Client</title>
     <style>
-    <style>
-      body {
+      <style > body {
         font-family: Arial, sans-serif;
-        background-color: #F8F8F8;
+        background-color: #f8f8f8;
       }
 
       #container {
         width: 60%;
         margin: 0 auto;
-        background-color: #FFFFFF;
+        background-color: #ffffff;
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);
@@ -34,44 +33,46 @@
         color: #666666;
       }
 
-      input[type="text"] {
+      input[type='text'] {
         width: 100%;
         padding: 10px;
         font-size: 16px;
         border-radius: 5px;
         border: none;
-        background-color: #F2F2F2;
+        background-color: #f2f2f2;
       }
 
       button {
         padding: 10px 20px;
         border-radius: 5px;
         border: none;
-        color: #FFFFFF;
-        background-color: #FFA500;
+        color: #ffffff;
+        background-color: #ffa500;
         cursor: pointer;
         transition: background-color 0.3s ease;
         margin: 5px;
       }
 
       button:hover {
-        background-color: #FF8C00;
+        background-color: #ff8c00;
       }
 
-      #save, #load {
-        background-color: #4CAF50;
+      #save,
+      #load {
+        background-color: #4caf50;
       }
 
-      #save:hover, #load:hover {
-        background-color: #3E8E41;
+      #save:hover,
+      #load:hover {
+        background-color: #3e8e41;
       }
 
       #login {
-        background-color: #008CBA;
+        background-color: #008cba;
       }
 
       #login:hover {
-        background-color: #006F8E;
+        background-color: #006f8e;
       }
 
       form {
@@ -87,11 +88,9 @@
         font-size: 16px;
         border-radius: 5px;
         border: none;
-        background-color: #F2F2F2;
+        background-color: #f2f2f2;
         margin-bottom: 10px;
       }
-
-    </style>      
     </style>
   </head>
   <body>
@@ -99,24 +98,41 @@
       <h1>NosDAV</h1>
       <form onsubmit="return false;">
         <label for="content">Paste your text here:</label>
-        <textarea id="file-content" placeholder="Load..." name="content" rows="10"></textarea>
+        <textarea
+          id="file-content"
+          placeholder="Load..."
+          name="content"
+          rows="10"
+        ></textarea>
+        <label>
+          <input
+            type="checkbox"
+            id="file-format"
+            name="file-format"
+            value="json"
+          />
+          use .json
+        </label>
         <div>
           <button id="load">Load</button>
           <button id="save">Save</button>
           <button id="login">Login</button>
         </div>
+        <div></div>
       </form>
     </div>
 
-
     <script>
       const serverUrl = 'https://nostr.rocks:3008'
-      var userHex
+      var userHex, filename, contentType
+      var isJson = false
 
       const fileContent = document.getElementById('file-content')
       const loadBtn = document.getElementById('load')
       const saveBtn = document.getElementById('save')
       const loginBtn = document.getElementById('login')
+
+      const checkbox = document.getElementById('file-format')
 
       // Load the file content from the server
       const loadFile = () => {
@@ -125,7 +141,17 @@
           return
         }
 
-        fetch(`${serverUrl}/${userHex}/paste.txt`, {
+        if (checkbox.checked) {
+          isJson = true
+          filename = 'paste.json'
+          contentType = 'application/json'
+        } else {
+          isJson = false
+          filename = 'paste.txt'
+          contentType = 'text/plain'
+        }
+
+        fetch(`${serverUrl}/${userHex}/${filename}`, {
           headers: {
             Authorization: `Nostr ${userHex}`
           }
@@ -154,14 +180,24 @@
           return
         }
 
+        if (checkbox.checked) {
+          isJson = true
+          filename = 'paste.json'
+          contentType = 'application/json'
+        } else {
+          isJson = false
+          filename = 'paste.txt'
+          contentType = 'text/plain'
+        }
+
         const text = fileContent.value
 
-        fetch(`${serverUrl}/${userHex}/paste.txt`, {
+        fetch(`${serverUrl}/${userHex}/${filename}`, {
           method: 'PUT',
           body: text,
           headers: {
             Authorization: `Nostr ${userHex}`,
-            'Content-Type': 'text/plain',
+            'Content-Type': contentType,
             'Content-Length': text.length
           }
         })

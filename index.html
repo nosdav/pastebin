@@ -17,6 +17,7 @@
 
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
+      const slug = getQueryStringValue('slug') || 'paste'
       var userHex, filename, contentType, path
       var isJson = false
 
@@ -74,13 +75,13 @@
 
           if (checkbox.checked) {
             isJson = true
-            filename = 'paste.json'
+            filename = `${slug}.json`
             path = `${serverUrl}/${userHex}/${filename}`
             document.getElementById('download').setAttribute('href', path)
             contentType = 'application/json'
           } else {
             isJson = false
-            filename = 'paste.txt'
+            filename = `${slug}.txt`
             path = `${serverUrl}/${userHex}/${filename}`
             contentType = 'text/plain'
             document.getElementById('download').setAttribute('href', path)
@@ -120,11 +121,11 @@
 
           if (checkbox.checked) {
             isJson = true
-            filename = 'paste.json'
+            filename = `${slug}.json`
             contentType = 'application/json'
           } else {
             isJson = false
-            filename = 'paste.txt'
+            filename = `${slug}.txt`
             contentType = 'text/plain'
           }
 

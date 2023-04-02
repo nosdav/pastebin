@@ -117,9 +117,9 @@
           use .json
         </label>
         <div>
-          <button id="load">Load</button>
+          <button id="load" style="display: none">Load</button>
           <button id="save">Save</button>
-          <button id="login">Login</button>
+          <button id="login">Login / Load</button>
         </div>
         <div></div>
       </form>
@@ -211,7 +211,7 @@
         })
           .then(response => {
             if (response.status === 201) {
-              alert('File saved successfully')
+              console.log('File saved successfully')
             } else {
               throw new Error('Failed to save file')
             }
@@ -225,7 +225,7 @@
       // Login using Nostr
       const login = async () => {
         userHex = await window.nostr.getPublicKey()
-        alert(`Logged in with public key: ${userHex}`)
+        console.log(`Logged in with public key: ${userHex}`)
         loadFile()
       }
 

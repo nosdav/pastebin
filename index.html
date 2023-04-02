@@ -15,7 +15,8 @@
       import { html, render, Component } from './js/spux.js'
       import './js/dior.js'
 
-      const serverUrl = 'https://nosdav.nostr.rocks'
+      const serverUrl =
+        getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       var userHex, filename, contentType, path
       var isJson = false
 
@@ -23,6 +24,21 @@
         const queryString = window.location.search.substring(1)
         const queryParams = new URLSearchParams(queryString)
         return queryParams.get(key)
+      }
+
+      async function generateHeader(pubkey) {
+        const event = {
+          kind: 27235,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [['url', path]],
+          content: ''
+        }
+        const signedEvent = await window.nostr.signEvent(event)
+        console.log(signedEvent)
+        console.log(JSON.stringify(signedEvent))
+        console.log(btoa(JSON.stringify(signedEvent)))
+
+        return `Nostr ${btoa(JSON.stringify(signedEvent))}`
       }
 
       class App extends Component {
@@ -93,7 +109,7 @@
             })
         }
 
-        save() {
+        async save() {
           if (!userHex) {
             alert('Please login first')
             return
@@ -114,11 +130,13 @@
 
           const text = fileContent.value
 
+          var authorization = await generateHeader(userHex)
+
           fetch(`${serverUrl}/${userHex}/${filename}`, {
             method: 'PUT',
             body: text,
             headers: {
-              Authorization: `Nostr ${userHex}`,
+              Authorization: authorization,
               'Content-Type': contentType,
               'Content-Length': text.length
             }

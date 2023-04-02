@@ -3,235 +3,181 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple NosDAV Client</title>
-    <style>
-      <style > body {
-        font-family: Arial, sans-serif;
-        background-color: #f8f8f8;
+    <link rel="stylesheet" href="css/style.css" />
+    <title>NosDAV Pastebin</title>
+    <script type="application/ld+json" id="data">
+      {
+        "@context": "https://schema.org"
       }
+    </script>
 
-      #container {
-        width: 60%;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
+    <script type="module">
+      import { html, render, Component } from './js/spux.js'
+      import './js/dior.js'
 
-      h1 {
-        text-align: center;
-        color: #666666;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 5px;
-        color: #666666;
-      }
-
-      input[type='text'] {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 5px;
-        border: none;
-        background-color: #f2f2f2;
-      }
-
-      button {
-        padding: 10px 20px;
-        border-radius: 5px;
-        border: none;
-        color: #ffffff;
-        background-color: #ffa500;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        margin: 5px;
-      }
-
-      button:hover {
-        background-color: #ff8c00;
-      }
-
-      #save,
-      #load {
-        background-color: #4caf50;
-      }
-
-      #save:hover,
-      #load:hover {
-        background-color: #3e8e41;
-      }
-
-      #login {
-        background-color: #008cba;
-      }
-
-      #login:hover {
-        background-color: #006f8e;
-      }
-
-      form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-      }
-
-      textarea {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 5px;
-        border: none;
-        background-color: #f2f2f2;
-        margin-bottom: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="container">
-      <h1>NosDAV</h1>
-      <form onsubmit="return false;">
-        <label for="content"
-          >Paste Text Below |
-          <a href="#" id="download" target="_blank">Download</a></label
-        >
-        <textarea
-          id="file-content"
-          placeholder="Load..."
-          name="content"
-          rows="10"
-        ></textarea>
-        <label>
-          <input
-            type="checkbox"
-            id="file-format"
-            name="file-format"
-            value="json"
-          />
-          use .json
-        </label>
-        <div>
-          <button id="load" style="display: none">Load</button>
-          <button id="save">Save</button>
-          <button id="login">Login / Load</button>
-        </div>
-        <div></div>
-      </form>
-    </div>
-
-    <script>
       const serverUrl = 'https://nosdav.nostr.rocks'
       var userHex, filename, contentType, path
       var isJson = false
 
-      const fileContent = document.getElementById('file-content')
-      const loadBtn = document.getElementById('load')
-      const saveBtn = document.getElementById('save')
-      const loginBtn = document.getElementById('login')
+      function getQueryStringValue(key) {
+        const queryString = window.location.search.substring(1)
+        const queryParams = new URLSearchParams(queryString)
+        return queryParams.get(key)
+      }
 
-      const checkbox = document.getElementById('file-format')
-
-      // Load the file content from the server
-      const loadFile = () => {
-        if (!userHex) {
-          alert('Please login first')
-          return
-        }
-
-        if (checkbox.checked) {
-          isJson = true
-          filename = 'paste.json'
-          path = `${serverUrl}/${userHex}/${filename}`
-          document.getElementById('download').setAttribute('href', path)
-          contentType = 'application/json'
-        } else {
-          isJson = false
-          filename = 'paste.txt'
-          path = `${serverUrl}/${userHex}/${filename}`
-          contentType = 'text/plain'
-          document.getElementById('download').setAttribute('href', path)
-          contentType = 'application/json'
-        }
-
-        fetch(path, {
-          headers: {
-            Authorization: `Nostr ${userHex}`
+      class App extends Component {
+        constructor() {
+          super()
+          this.state = {
+            userHex: null,
+            filename: null,
+            contentType: null,
+            path: null,
+            isJson: false
           }
-        })
-          .then(response => {
-            if (response.status === 200) {
-              return response.text()
-            } else {
-              throw new Error('Failed to load file content')
+          this.login = this.login.bind(this)
+          this.save = this.save.bind(this)
+        }
+
+        async login() {
+          userHex = await window.nostr.getPublicKey()
+          console.log(`Logged in with public key: ${userHex}`)
+          this.setState({ userHex: userHex })
+          this.loadFile()
+        }
+
+        // Load the file content from the server
+        loadFile() {
+          if (!userHex) {
+            alert('Please login first')
+            return
+          }
+
+          var checkbox = document.getElementById('file-format')
+          const fileContent = document.getElementById('file-content')
+
+          if (checkbox.checked) {
+            isJson = true
+            filename = 'paste.json'
+            path = `${serverUrl}/${userHex}/${filename}`
+            document.getElementById('download').setAttribute('href', path)
+            contentType = 'application/json'
+          } else {
+            isJson = false
+            filename = 'paste.txt'
+            path = `${serverUrl}/${userHex}/${filename}`
+            contentType = 'text/plain'
+            document.getElementById('download').setAttribute('href', path)
+            contentType = 'application/json'
+          }
+
+          fetch(path, {
+            headers: {
+              Authorization: `Nostr ${userHex}`
             }
           })
-          .then(text => {
-            fileContent.value = text
-            fileContent.placeholder = ''
-          })
-          .catch(error => {
-            console.error(error)
-            fileContent.placeholder = 'Error loading file content'
-          })
-      }
-
-      // Save the new text to the server
-      const saveFile = () => {
-        if (!userHex) {
-          alert('Please login first')
-          return
+            .then(response => {
+              if (response.status === 200) {
+                return response.text()
+              } else {
+                throw new Error('Failed to load file content')
+              }
+            })
+            .then(text => {
+              fileContent.value = text
+              fileContent.placeholder = ''
+            })
+            .catch(error => {
+              console.error(error)
+              fileContent.placeholder = 'Error loading file content'
+            })
         }
 
-        if (checkbox.checked) {
-          isJson = true
-          filename = 'paste.json'
-          contentType = 'application/json'
-        } else {
-          isJson = false
-          filename = 'paste.txt'
-          contentType = 'text/plain'
-        }
-
-        const text = fileContent.value
-
-        fetch(`${serverUrl}/${userHex}/${filename}`, {
-          method: 'PUT',
-          body: text,
-          headers: {
-            Authorization: `Nostr ${userHex}`,
-            'Content-Type': contentType,
-            'Content-Length': text.length
+        save() {
+          if (!userHex) {
+            alert('Please login first')
+            return
           }
-        })
-          .then(response => {
-            if (response.status === 201) {
-              console.log('File saved successfully')
-            } else {
-              throw new Error('Failed to save file')
+
+          var checkbox = document.getElementById('file-format')
+          const fileContent = document.getElementById('file-content')
+
+          if (checkbox.checked) {
+            isJson = true
+            filename = 'paste.json'
+            contentType = 'application/json'
+          } else {
+            isJson = false
+            filename = 'paste.txt'
+            contentType = 'text/plain'
+          }
+
+          const text = fileContent.value
+
+          fetch(`${serverUrl}/${userHex}/${filename}`, {
+            method: 'PUT',
+            body: text,
+            headers: {
+              Authorization: `Nostr ${userHex}`,
+              'Content-Type': contentType,
+              'Content-Length': text.length
             }
           })
-          .catch(error => {
-            console.error(error)
-            alert('Error saving file')
-          })
+            .then(response => {
+              if (response.status === 201) {
+                console.log('File saved successfully')
+              } else {
+                throw new Error('Failed to save file')
+              }
+            })
+            .catch(error => {
+              console.error(error)
+              alert('Error saving file')
+            })
+        }
+
+        render() {
+          const { userHex, filename, contentType, path, isJson } = this.state
+          return html`
+            <div id="container">
+              <h1>NosDAV</h1>
+              <label for="content"
+                >Paste Text Below |
+                <a href="#" id="download" target="_blank">Download</a></label
+              >
+              <textarea
+                id="file-content"
+                placeholder="Load..."
+                name="content"
+                rows="10"
+              ></textarea>
+              <label>
+                <input
+                  type="checkbox"
+                  id="file-format"
+                  name="file-format"
+                  value="json"
+                />
+                use .json
+              </label>
+              <div>
+                ${this.state.userHex
+                  ? html`
+                      <button id="save" onClick="${this.save}">Save</button>
+                      <button id="login" onClick="${this.login}">Load</button>
+                    `
+                  : html` <button id="login" onClick="${this.login}">
+                      Login
+                    </button>`}
+              </div>
+              <div></div>
+            </div>
+          `
+        }
       }
 
-      // Login using Nostr
-      const login = async () => {
-        userHex = await window.nostr.getPublicKey()
-        console.log(`Logged in with public key: ${userHex}`)
-        loadFile()
-      }
-
-      loadBtn.addEventListener('click', loadFile)
-      saveBtn.addEventListener('click', saveFile)
-      loginBtn.addEventListener('click', login)
+      render(html` <${App} /> `, document.body)
     </script>
-  </body>
+  </head>
+  <body></body>
 </html>

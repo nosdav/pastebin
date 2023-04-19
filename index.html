@@ -61,11 +61,11 @@
             path: null,
             isJson: false
           }
-          this.login = this.login.bind(this)
+          this.userLogin = this.userLogin.bind(this)
           this.save = this.save.bind(this)
         }
 
-        async login() {
+        async userLogin() {
           userPublicKey = await window.nostr.getPublicKey()
           console.log(`Logged in with public key: ${userPublicKey}`)
           this.setState({ userPublicKey: userPublicKey })
@@ -199,9 +199,11 @@
                 ${this.state.userPublicKey
                   ? html`
                       <button id="save" onClick="${this.save}">Save</button>
-                      <button id="login" onClick="${this.login}">Load</button>
+                      <button id="login" onClick="${this.userLogin}">
+                        Load
+                      </button>
                     `
-                  : html` <button id="login" onClick="${this.login}">
+                  : html` <button id="login" onClick="${this.userLogin}">
                       Login
                     </button>`}
               </div>

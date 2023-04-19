@@ -18,8 +18,17 @@
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const slug = getQueryStringValue('slug') || 'paste'
+      const mode = getQueryStringValue('mode') || 'm'
       var userHex, filename, contentType, path
       var isJson = false
+
+      function getPath(serverUrl, userHex, filename, mode) {
+        if (mode !== 'm') {
+          return `${serverUrl}/${filename}`
+        } else {
+          return `${serverUrl}/${userHex}/${filename}`
+        }
+      }
 
       function getQueryStringValue(key) {
         const queryString = window.location.search.substring(1)
@@ -27,7 +36,7 @@
         return queryParams.get(key)
       }
 
-      async function generateHeader(pubkey) {
+      async function generateAuthorizationHeader(pubkey) {
         const event = {
           kind: 27235,
           created_at: Math.floor(Date.now() / 1000),
@@ -76,13 +85,17 @@
           if (checkbox.checked) {
             isJson = true
             filename = `${slug}.json`
-            path = `${serverUrl}/${userHex}/${filename}`
+
+            path = getPath(serverUrl, userHex, filename, mode)
+
             document.getElementById('download').setAttribute('href', path)
             contentType = 'application/json'
           } else {
             isJson = false
             filename = `${slug}.txt`
-            path = `${serverUrl}/${userHex}/${filename}`
+
+            path = getPath(serverUrl, userHex, filename, mode)
+
             contentType = 'text/plain'
             document.getElementById('download').setAttribute('href', path)
             contentType = 'application/json'
@@ -131,9 +144,11 @@
 
           const text = fileContent.value
 
-          var authorization = await generateHeader(userHex)
+          var authorization = await generateAuthorizationHeader(userHex)
 
-          fetch(`${serverUrl}/${userHex}/${filename}`, {
+          let path = getPath(serverUrl, userHex, filename, mode)
+
+          fetch(path, {
             method: 'PUT',
             body: text,
             headers: {

@@ -19,14 +19,14 @@
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const slug = getQueryStringValue('slug') || 'paste'
       const mode = getQueryStringValue('mode') || 'm'
-      var userHex, filename, contentType, path
+      var userPublicKey, filename, contentType, path
       var isJson = false
 
-      function getPath(serverUrl, userHex, filename, mode) {
+      function getPath(serverUrl, userPublicKey, filename, mode) {
         if (mode !== 'm') {
           return `${serverUrl}/${filename}`
         } else {
-          return `${serverUrl}/${userHex}/${filename}`
+          return `${serverUrl}/${userPublicKey}/${filename}`
         }
       }
 
@@ -55,7 +55,7 @@
         constructor() {
           super()
           this.state = {
-            userHex: null,
+            userPublicKey: null,
             filename: null,
             contentType: null,
             path: null,
@@ -66,15 +66,15 @@
         }
 
         async login() {
-          userHex = await window.nostr.getPublicKey()
-          console.log(`Logged in with public key: ${userHex}`)
-          this.setState({ userHex: userHex })
+          userPublicKey = await window.nostr.getPublicKey()
+          console.log(`Logged in with public key: ${userPublicKey}`)
+          this.setState({ userPublicKey: userPublicKey })
           this.loadFile()
         }
 
         // Load the file content from the server
         loadFile() {
-          if (!userHex) {
+          if (!userPublicKey) {
             alert('Please login first')
             return
           }
@@ -86,7 +86,7 @@
             isJson = true
             filename = `${slug}.json`
 
-            path = getPath(serverUrl, userHex, filename, mode)
+            path = getPath(serverUrl, userPublicKey, filename, mode)
 
             document.getElementById('download').setAttribute('href', path)
             contentType = 'application/json'
@@ -94,7 +94,7 @@
             isJson = false
             filename = `${slug}.txt`
 
-            path = getPath(serverUrl, userHex, filename, mode)
+            path = getPath(serverUrl, userPublicKey, filename, mode)
 
             contentType = 'text/plain'
             document.getElementById('download').setAttribute('href', path)
@@ -103,7 +103,7 @@
 
           fetch(path, {
             headers: {
-              Authorization: `Nostr ${userHex}`
+              Authorization: `Nostr ${userPublicKey}`
             }
           })
             .then(response => {
@@ -124,7 +124,7 @@
         }
 
         async save() {
-          if (!userHex) {
+          if (!userPublicKey) {
             alert('Please login first')
             return
           }
@@ -144,9 +144,9 @@
 
           const text = fileContent.value
 
-          var authorization = await generateAuthorizationHeader(userHex)
+          var authorization = await generateAuthorizationHeader(userPublicKey)
 
-          let path = getPath(serverUrl, userHex, filename, mode)
+          let path = getPath(serverUrl, userPublicKey, filename, mode)
 
           fetch(path, {
             method: 'PUT',
@@ -171,7 +171,8 @@
         }
 
         render() {
-          const { userHex, filename, contentType, path, isJson } = this.state
+          const { userPublicKey, filename, contentType, path, isJson } =
+            this.state
           return html`
             <div id="container">
               <h1>NosDAV</h1>
@@ -195,7 +196,7 @@
                 use .json
               </label>
               <div>
-                ${this.state.userHex
+                ${this.state.userPublicKey
                   ? html`
                       <button id="save" onClick="${this.save}">Save</button>
                       <button id="login" onClick="${this.login}">Load</button>

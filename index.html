@@ -25,7 +25,7 @@
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
-      var userPublicKey, filename, contentType, path
+      var userPublicKey, path, contentType
 
       class App extends Component {
         constructor() {
@@ -33,25 +33,31 @@
           const uri = getQueryStringValue('uri') || 'paste.txt'
           this.state = {
             userPublicKey: null,
-            filename: null,
+            filename: uri,
             contentType: null,
+            fileContent: '',
             path: null,
-            slug: uri
+            downloadLink: ''
           }
           this.userLogin = this.userLogin.bind(this)
           this.save = this.save.bind(this)
-          this.updateSlug = this.updateSlug.bind(this)
+          this.updateFilename = this.updateFilename.bind(this)
+          this.updateFileContent = this.updateFileContent.bind(this)
+          this.updateDownloadLink = this.updateDownloadLink.bind(this)
+        }
+
+        updateFileContent(event) {
+          this.setState({ fileContent: event.target.value })
         }
 
         updateDownloadLink() {
-          const filename = document.getElementById('file-name').value
-          const downloadLink = document.getElementById('download')
+          const { filename } = this.state
           const path = getPath(serverUrl, userPublicKey, filename, mode)
-          downloadLink.setAttribute('href', path)
+          this.setState({ downloadLink: path })
         }
 
-        updateSlug(event) {
-          this.setState({ slug: event.target.value })
+        updateFilename(event) {
+          this.setState({ filename: event.target.value })
         }
 
         async userLogin() {
@@ -62,42 +68,36 @@
         }
 
         // Load the file content from the server
-        loadFile() {
+        async loadFile() {
           if (!userPublicKey) {
             alert('Please login first')
             return
           }
 
-          const fileContent = document.getElementById('file-content')
-          const inputSlug = document.getElementById('file-name').value
-
-          filename = inputSlug
+          const { filename } = this.state
 
           path = getPath(serverUrl, userPublicKey, filename, mode)
 
-          document.getElementById('download').setAttribute('href', path)
+          this.updateDownloadLink()
+
           contentType = getMimeType(filename)
 
-          fetch(path, {
-            headers: {
-              Authorization: `Nostr ${userPublicKey}`
-            }
-          })
-            .then(response => {
-              if (response.status === 200) {
-                return response.text()
-              } else {
-                throw new Error('Failed to load file content')
+          try {
+            const response = await fetch(path, {
+              headers: {
+                Authorization: `Nostr ${userPublicKey}`
               }
             })
-            .then(text => {
-              fileContent.value = text
-              fileContent.placeholder = ''
-            })
-            .catch(error => {
-              console.error(error)
-              fileContent.placeholder = 'Enter Text...'
-            })
+
+            if (response.status === 200) {
+              const text = await response.text()
+              this.setState({ fileContent: text })
+            } else {
+              throw new Error('Failed to load file content')
+            }
+          } catch (error) {
+            console.error(error)
+          }
 
           this.updateDownloadLink()
         }
@@ -108,12 +108,8 @@
             return
           }
 
-          const fileContent = document.getElementById('file-content')
-          const inputSlug = document.getElementById('file-name').value
-
-          filename = inputSlug
-
-          const text = fileContent.value
+          const fileContent = this.state.fileContent
+          const filename = this.state.filename
 
           let path = getPath(serverUrl, userPublicKey, filename, mode)
           contentType = getMimeType(filename)
@@ -121,11 +117,11 @@
 
           fetch(path, {
             method: 'PUT',
-            body: text,
+            body: fileContent,
             headers: {
               Authorization: authorization,
               'Content-Type': contentType,
-              'Content-Length': text.length
+              'Content-Length': fileContent.length
             }
           })
             .then(response => {
@@ -142,13 +138,20 @@
         }
 
         render() {
-          const { userPublicKey, filename, contentType, path } = this.state
+          const {
+            userPublicKey,
+            filename,
+            contentType,
+            path,
+            fileContent,
+            downloadLink
+          } = this.state
           return html`
             <div id="container">
               <h1>NosDAV</h1>
               <label for="file-name"
                 >File${' '}
-                <a href="#" id="download" target="_blank">
+                <a href="${downloadLink}" id="download" target="_blank">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="18"
@@ -169,9 +172,9 @@
                 id="file-name"
                 name="file-name"
                 placeholder="Enter filename"
-                value="${this.state.slug}"
+                value="${filename}"
                 onInput="${event => {
-                  this.updateSlug(event)
+                  this.updateFilename(event)
                   this.updateDownloadLink()
                 }}"
               />
@@ -182,6 +185,8 @@
                 placeholder="Login First"
                 name="content"
                 rows="10"
+                value="${fileContent}"
+                onInput="${this.updateFileContent}"
               ></textarea>
               <div>
                 ${this.state.userPublicKey

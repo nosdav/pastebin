@@ -1,6 +1,6 @@
 // app.js
 import { html, Component } from './js/spux.js'
-import { getPath, getMimeType, getQueryStringValue, generateAuthorizationHeader, loadFile, saveFile } from './util.js'
+import { getPath, getQueryStringValue, loadFile, saveFile } from './util.js'
 
 export class App extends Component {
   constructor() {

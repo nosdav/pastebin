@@ -57,19 +57,6 @@
         }
       }
 
-      function updateDownloadLink() {
-        const inputSlug = document.getElementById('file-name').value
-        const checkbox = document.getElementById('file-format')
-        const downloadLink = document.getElementById('download')
-
-        let filename
-
-        filename = inputSlug
-
-        const path = getPath(serverUrl, userPublicKey, filename, mode)
-        downloadLink.setAttribute('href', path)
-      }
-
       function getQueryStringValue(key) {
         const queryString = window.location.search.substring(1)
         const queryParams = new URLSearchParams(queryString)
@@ -105,6 +92,19 @@
           this.userLogin = this.userLogin.bind(this)
           this.save = this.save.bind(this)
           this.updateSlug = this.updateSlug.bind(this)
+        }
+
+        updateDownloadLink() {
+          const inputSlug = document.getElementById('file-name').value
+          const checkbox = document.getElementById('file-format')
+          const downloadLink = document.getElementById('download')
+
+          let filename
+
+          filename = inputSlug
+
+          const path = getPath(serverUrl, userPublicKey, filename, mode)
+          downloadLink.setAttribute('href', path)
         }
 
         updateSlug(event) {
@@ -157,7 +157,7 @@
               fileContent.placeholder = 'Enter Text...'
             })
 
-          updateDownloadLink()
+          this.updateDownloadLink()
         }
 
         async save() {
@@ -232,7 +232,7 @@
                 value="${this.state.slug}"
                 onInput="${event => {
                   this.updateSlug(event)
-                  updateDownloadLink()
+                  this.updateDownloadLink()
                 }}"
               />
               <label for="content">Enter Text Below</label>

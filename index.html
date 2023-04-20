@@ -25,7 +25,6 @@
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
-      var userPublicKey
 
       class App extends Component {
         constructor() {
@@ -51,7 +50,7 @@
         }
 
         updateDownloadLink() {
-          const { filename } = this.state
+          const { filename, userPublicKey } = this.state
           const path = getPath(serverUrl, userPublicKey, filename, mode)
           this.setState({ downloadLink: path })
         }
@@ -61,20 +60,20 @@
         }
 
         async userLogin() {
-          userPublicKey = await window.nostr.getPublicKey()
+          const userPublicKey = await window.nostr.getPublicKey()
           console.log(`Logged in with public key: ${userPublicKey}`)
-          this.setState({ userPublicKey: userPublicKey })
+          await this.setState({ userPublicKey: userPublicKey })
           this.loadFile()
         }
 
         // Load the file content from the server
         async loadFile() {
-          if (!userPublicKey) {
+          if (!this.state.userPublicKey) {
             alert('Please login first')
             return
           }
 
-          const { filename } = this.state
+          const { filename, userPublicKey } = this.state
 
           const path = getPath(serverUrl, userPublicKey, filename, mode)
 
@@ -103,13 +102,14 @@
         }
 
         async save() {
-          if (!userPublicKey) {
+          if (!this.state.userPublicKey) {
             alert('Please login first')
             return
           }
 
           const fileContent = this.state.fileContent
           const filename = this.state.filename
+          const userPublicKey = this.state.userPublicKey
 
           const path = getPath(serverUrl, userPublicKey, filename, mode)
           const contentType = getMimeType(filename)
@@ -183,7 +183,7 @@
                 onInput="${this.updateFileContent}"
               ></textarea>
               <div>
-                ${this.state.userPublicKey
+                ${userPublicKey
                   ? html`
                       <button id="save" onClick="${this.save}">Save</button>
                       <button id="login" onClick="${this.userLogin}">

@@ -33,6 +33,20 @@
         }
       }
 
+      function getMimeType(filename) {
+        const extension = filename.split('.').pop().toLowerCase()
+        switch (extension) {
+          case 'txt':
+            return 'text/plain'
+          case 'ttl':
+            return 'text/turtle'
+          case 'json':
+            return 'application/json'
+          default:
+            return 'text/plain'
+        }
+      }
+
       function isAbsoluteUrl(url) {
         try {
           new URL(url)
@@ -120,9 +134,8 @@
 
           path = getPath(serverUrl, userPublicKey, filename, mode)
 
-          contentType = 'text/plain'
           document.getElementById('download').setAttribute('href', path)
-          contentType = 'application/json'
+          contentType = getMimeType(filename)
 
           fetch(path, {
             headers: {
@@ -160,13 +173,13 @@
 
           isJson = false
           filename = inputSlug
-          contentType = 'text/plain'
 
           const text = fileContent.value
 
           var authorization = await generateAuthorizationHeader(userPublicKey)
 
           let path = getPath(serverUrl, userPublicKey, filename, mode)
+          contentType = getMimeType(filename)
 
           fetch(path, {
             method: 'PUT',

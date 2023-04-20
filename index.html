@@ -22,13 +22,13 @@
         generateAuthorizationHeader
       } from './util.js'
 
-      const serverUrl =
-        getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
 
       class App extends Component {
         constructor() {
           super()
+          const serverUrl =
+            getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
           const uri = getQueryStringValue('uri') || 'paste.txt'
           this.state = {
             userPublicKey: null,
@@ -36,7 +36,8 @@
             contentType: null,
             fileContent: '',
             path: null,
-            downloadLink: ''
+            downloadLink: '',
+            serverUrl: serverUrl
           }
           this.userLogin = this.userLogin.bind(this)
           this.save = this.save.bind(this)
@@ -50,7 +51,7 @@
         }
 
         updateDownloadLink() {
-          const { filename, userPublicKey } = this.state
+          const { filename, userPublicKey, serverUrl } = this.state
           const path = getPath(serverUrl, userPublicKey, filename, mode)
           this.setState({ downloadLink: path })
         }
@@ -73,7 +74,7 @@
             return
           }
 
-          const { filename, userPublicKey } = this.state
+          const { filename, userPublicKey, serverUrl } = this.state
 
           const path = getPath(serverUrl, userPublicKey, filename, mode)
 
@@ -110,6 +111,7 @@
           const fileContent = this.state.fileContent
           const filename = this.state.filename
           const userPublicKey = this.state.userPublicKey
+          const serverUrl = this.state.serverUrl
 
           const path = getPath(serverUrl, userPublicKey, filename, mode)
           const contentType = getMimeType(filename)

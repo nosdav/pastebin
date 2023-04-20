@@ -22,10 +22,23 @@
       var isJson = false
 
       function getPath(serverUrl, userPublicKey, filename, mode) {
+        if (isAbsoluteUrl(filename)) {
+          return filename
+        }
+
         if (mode !== 'm') {
           return `${serverUrl}/${filename}`
         } else {
           return `${serverUrl}/${userPublicKey}/${filename}`
+        }
+      }
+
+      function isAbsoluteUrl(url) {
+        try {
+          new URL(url)
+          return true
+        } catch (e) {
+          return false
         }
       }
 

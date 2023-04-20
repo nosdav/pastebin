@@ -1,4 +1,4 @@
-export function getPath(serverUrl, userPublicKey, filename, mode) {
+export function getPath (serverUrl, userPublicKey, filename, mode) {
   if (isAbsoluteUrl(filename)) {
     return filename
   }
@@ -10,7 +10,7 @@ export function getPath(serverUrl, userPublicKey, filename, mode) {
   }
 }
 
-export function getMimeType(filename) {
+export function getMimeType (filename) {
   const extension = filename.split('.').pop().toLowerCase()
   switch (extension) {
     case 'txt':
@@ -26,7 +26,7 @@ export function getMimeType(filename) {
   }
 }
 
-export function isAbsoluteUrl(url) {
+export function isAbsoluteUrl (url) {
   try {
     new URL(url)
     return true
@@ -35,13 +35,13 @@ export function isAbsoluteUrl(url) {
   }
 }
 
-export function getQueryStringValue(key) {
+export function getQueryStringValue (key) {
   const queryString = window.location.search.substring(1)
   const queryParams = new URLSearchParams(queryString)
   return queryParams.get(key)
 }
 
-export async function generateAuthorizationHeader(path) {
+export async function generateAuthorizationHeader (path) {
   const event = {
     kind: 27235,
     created_at: Math.floor(Date.now() / 1000),
@@ -54,4 +54,52 @@ export async function generateAuthorizationHeader(path) {
   console.log(btoa(JSON.stringify(signedEvent)))
 
   return `Nostr ${btoa(JSON.stringify(signedEvent))}`
+}
+
+export async function loadFile (serverUrl, userPublicKey, filename, mode) {
+  const path = getPath(serverUrl, userPublicKey, filename, mode)
+
+  try {
+    const response = await fetch(path, {
+      headers: {
+        Authorization: `Nostr ${userPublicKey}`
+      }
+    })
+
+    if (response.status === 200) {
+      return await response.text()
+    } else {
+      throw new Error('Failed to load file content')
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function saveFile (serverUrl, userPublicKey, filename, mode, fileContent) {
+  const path = getPath(serverUrl, userPublicKey, filename, mode)
+  const contentType = getMimeType(filename)
+  const authorization = await generateAuthorizationHeader(path)
+
+  try {
+    const response = await fetch(path, {
+      method: 'PUT',
+      body: fileContent,
+      headers: {
+        Authorization: authorization,
+        'Content-Type': contentType,
+        'Content-Length': fileContent.length
+      }
+    })
+
+    if (response.status === 201) {
+      console.log('File saved successfully')
+      return true
+    } else {
+      throw new Error('Failed to save file')
+    }
+  } catch (error) {
+    console.error(error)
+    return false
+  }
 }

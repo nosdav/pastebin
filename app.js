@@ -1,6 +1,6 @@
 // app.js
 import { html, Component } from './js/spux.js'
-import { getPath, getMimeType, getQueryStringValue, generateAuthorizationHeader } from './util.js'
+import { getPath, getMimeType, getQueryStringValue, generateAuthorizationHeader, loadFile, saveFile } from './util.js'
 
 export class App extends Component {
   constructor() {
@@ -44,69 +44,35 @@ export class App extends Component {
   // Load the file content from the server
   loadFile = async () => {
     if (!this.state.userPublicKey) {
-      alert('Please login first')
-      return
+      alert('Please login first');
+      return;
     }
 
-    const { filename, userPublicKey, serverUrl, mode } = this.state
+    const { filename, userPublicKey, serverUrl, mode } = this.state;
 
-    const path = getPath(serverUrl, userPublicKey, filename, mode)
+    const fileContent = await loadFile(serverUrl, userPublicKey, filename, mode);
 
-    this.updateDownloadLink()
-
-    try {
-      const response = await fetch(path, {
-        headers: {
-          Authorization: `Nostr ${userPublicKey}`
-        }
-      })
-
-      if (response.status === 200) {
-        const text = await response.text()
-        this.setState({ fileContent: text })
-      } else {
-        throw new Error('Failed to load file content')
-      }
-    } catch (error) {
-      console.error(error)
+    if (fileContent) {
+      this.setState({ fileContent: fileContent });
     }
 
-    this.updateDownloadLink()
-  }
+    this.updateDownloadLink();
+  };
 
   save = async () => {
     if (!this.state.userPublicKey) {
-      alert('Please login first')
-      return
+      alert('Please login first');
+      return;
     }
 
-    const { fileContent, filename, userPublicKey, serverUrl, mode } = this.state
+    const { fileContent, filename, userPublicKey, serverUrl, mode } = this.state;
 
-    const path = getPath(serverUrl, userPublicKey, filename, mode)
-    const contentType = getMimeType(filename)
-    var authorization = await generateAuthorizationHeader(path)
+    const success = await saveFile(serverUrl, userPublicKey, filename, mode, fileContent);
 
-    fetch(path, {
-      method: 'PUT',
-      body: fileContent,
-      headers: {
-        Authorization: authorization,
-        'Content-Type': contentType,
-        'Content-Length': fileContent.length
-      }
-    })
-      .then(response => {
-        if (response.status === 201) {
-          console.log('File saved successfully')
-        } else {
-          throw new Error('Failed to save file')
-        }
-      })
-      .catch(error => {
-        console.error(error)
-        alert('Error saving file')
-      })
-  }
+    if (!success) {
+      alert('Error saving file');
+    }
+  };
 
   render() {
     const { userPublicKey, filename, fileContent, downloadLink } = this.state

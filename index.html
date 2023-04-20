@@ -17,7 +17,6 @@
 
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
-      const slug = getQueryStringValue('slug') || 'paste'
       const mode = getQueryStringValue('mode') || 'm'
       var userPublicKey, filename, contentType, path
       var isJson = false
@@ -28,6 +27,19 @@
         } else {
           return `${serverUrl}/${userPublicKey}/${filename}`
         }
+      }
+
+      function updateDownloadLink() {
+        const inputSlug = document.getElementById('file-name').value
+        const checkbox = document.getElementById('file-format')
+        const downloadLink = document.getElementById('download')
+
+        let filename
+
+        filename = inputSlug
+
+        const path = getPath(serverUrl, userPublicKey, filename, mode)
+        downloadLink.setAttribute('href', path)
       }
 
       function getQueryStringValue(key) {
@@ -54,15 +66,22 @@
       class App extends Component {
         constructor() {
           super()
+          const slug = getQueryStringValue('slug') || 'paste.txt'
           this.state = {
             userPublicKey: null,
             filename: null,
             contentType: null,
             path: null,
-            isJson: false
+            isJson: false,
+            slug: slug
           }
           this.userLogin = this.userLogin.bind(this)
           this.save = this.save.bind(this)
+          this.updateSlug = this.updateSlug.bind(this)
+        }
+
+        updateSlug(event) {
+          this.setState({ slug: event.target.value })
         }
 
         async userLogin() {
@@ -81,25 +100,16 @@
 
           var checkbox = document.getElementById('file-format')
           const fileContent = document.getElementById('file-content')
+          const inputSlug = document.getElementById('file-name').value
 
-          if (checkbox.checked) {
-            isJson = true
-            filename = `${slug}.json`
+          isJson = false
+          filename = inputSlug
 
-            path = getPath(serverUrl, userPublicKey, filename, mode)
+          path = getPath(serverUrl, userPublicKey, filename, mode)
 
-            document.getElementById('download').setAttribute('href', path)
-            contentType = 'application/json'
-          } else {
-            isJson = false
-            filename = `${slug}.txt`
-
-            path = getPath(serverUrl, userPublicKey, filename, mode)
-
-            contentType = 'text/plain'
-            document.getElementById('download').setAttribute('href', path)
-            contentType = 'application/json'
-          }
+          contentType = 'text/plain'
+          document.getElementById('download').setAttribute('href', path)
+          contentType = 'application/json'
 
           fetch(path, {
             headers: {
@@ -121,6 +131,8 @@
               console.error(error)
               fileContent.placeholder = 'Enter Text...'
             })
+
+          updateDownloadLink()
         }
 
         async save() {
@@ -131,16 +143,11 @@
 
           var checkbox = document.getElementById('file-format')
           const fileContent = document.getElementById('file-content')
+          const inputSlug = document.getElementById('file-name').value
 
-          if (checkbox.checked) {
-            isJson = true
-            filename = `${slug}.json`
-            contentType = 'application/json'
-          } else {
-            isJson = false
-            filename = `${slug}.txt`
-            contentType = 'text/plain'
-          }
+          isJson = false
+          filename = inputSlug
+          contentType = 'text/plain'
 
           const text = fileContent.value
 
@@ -176,25 +183,43 @@
           return html`
             <div id="container">
               <h1>NosDAV</h1>
-              <label for="content"
-                >Paste Text Below |
-                <a href="#" id="download" target="_blank">Download</a></label
-              >
+              <label for="file-name"
+                >File${' '}
+                <a href="#" id="download" target="_blank">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line></svg></a
+              ></label>
+              <input
+                type="text"
+                id="file-name"
+                name="file-name"
+                placeholder="Enter filename"
+                value="${this.state.slug}"
+                onInput="${event => {
+                  this.updateSlug(event)
+                  updateDownloadLink()
+                }}"
+              />
+              <label for="content">Enter Text Below</label>
+
               <textarea
                 id="file-content"
-                placeholder="Login..."
+                placeholder="Login First"
                 name="content"
                 rows="10"
               ></textarea>
-              <label>
-                <input
-                  type="checkbox"
-                  id="file-format"
-                  name="file-format"
-                  value="json"
-                />
-                use .json
-              </label>
               <div>
                 ${this.state.userPublicKey
                   ? html`

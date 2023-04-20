@@ -1,6 +1,6 @@
 {
   "name": "nosdav-pastebin",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "nosdav pastebin",
   "main": "index.js",
   "scripts": {

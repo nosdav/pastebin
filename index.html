@@ -25,7 +25,7 @@
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
-      var userPublicKey, path
+      var userPublicKey
 
       class App extends Component {
         constructor() {
@@ -76,7 +76,7 @@
 
           const { filename } = this.state
 
-          path = getPath(serverUrl, userPublicKey, filename, mode)
+          const path = getPath(serverUrl, userPublicKey, filename, mode)
 
           this.updateDownloadLink()
 
@@ -111,7 +111,7 @@
           const fileContent = this.state.fileContent
           const filename = this.state.filename
 
-          let path = getPath(serverUrl, userPublicKey, filename, mode)
+          const path = getPath(serverUrl, userPublicKey, filename, mode)
           const contentType = getMimeType(filename)
           var authorization = await generateAuthorizationHeader(path)
 
@@ -138,7 +138,7 @@
         }
 
         render() {
-          const { userPublicKey, filename, path, fileContent, downloadLink } =
+          const { userPublicKey, filename, fileContent, downloadLink } =
             this.state
           return html`
             <div id="container">

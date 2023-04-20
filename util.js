@@ -21,6 +21,8 @@ export function getMimeType (filename) {
       return 'application/json'
     case 'jsonld':
       return 'application/ld+json'
+    case 'md':
+      return 'text/markdown' // Added Markdown support
     default:
       return 'text/plain'
   }

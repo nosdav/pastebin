@@ -14,69 +14,18 @@
     <script type="module">
       import { html, render, Component } from './js/spux.js'
       import './js/dior.js'
+      import {
+        getPath,
+        getMimeType,
+        isAbsoluteUrl,
+        getQueryStringValue,
+        generateAuthorizationHeader
+      } from './util.js'
 
       const serverUrl =
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
       var userPublicKey, filename, contentType, path
-
-      function getPath(serverUrl, userPublicKey, filename, mode) {
-        if (isAbsoluteUrl(filename)) {
-          return filename
-        }
-
-        if (mode !== 'm') {
-          return `${serverUrl}/${filename}`
-        } else {
-          return `${serverUrl}/${userPublicKey}/${filename}`
-        }
-      }
-
-      function getMimeType(filename) {
-        const extension = filename.split('.').pop().toLowerCase()
-        switch (extension) {
-          case 'txt':
-            return 'text/plain'
-          case 'ttl':
-            return 'text/turtle'
-          case 'json':
-            return 'application/json'
-          case 'jsonld':
-            return 'application/ld+json'
-          default:
-            return 'text/plain'
-        }
-      }
-
-      function isAbsoluteUrl(url) {
-        try {
-          new URL(url)
-          return true
-        } catch (e) {
-          return false
-        }
-      }
-
-      function getQueryStringValue(key) {
-        const queryString = window.location.search.substring(1)
-        const queryParams = new URLSearchParams(queryString)
-        return queryParams.get(key)
-      }
-
-      async function generateAuthorizationHeader(pubkey) {
-        const event = {
-          kind: 27235,
-          created_at: Math.floor(Date.now() / 1000),
-          tags: [['url', path]],
-          content: ''
-        }
-        const signedEvent = await window.nostr.signEvent(event)
-        console.log(signedEvent)
-        console.log(JSON.stringify(signedEvent))
-        console.log(btoa(JSON.stringify(signedEvent)))
-
-        return `Nostr ${btoa(JSON.stringify(signedEvent))}`
-      }
 
       class App extends Component {
         constructor() {
@@ -171,10 +120,9 @@
 
           const text = fileContent.value
 
-          var authorization = await generateAuthorizationHeader(userPublicKey)
-
           let path = getPath(serverUrl, userPublicKey, filename, mode)
           contentType = getMimeType(filename)
+          var authorization = await generateAuthorizationHeader(path)
 
           fetch(path, {
             method: 'PUT',

@@ -19,7 +19,6 @@
         getQueryStringValue('storage') || 'https://nosdav.nostr.rocks'
       const mode = getQueryStringValue('mode') || 'm'
       var userPublicKey, filename, contentType, path
-      var isJson = false
 
       function getPath(serverUrl, userPublicKey, filename, mode) {
         if (isAbsoluteUrl(filename)) {
@@ -101,7 +100,6 @@
             filename: null,
             contentType: null,
             path: null,
-            isJson: false,
             slug: uri
           }
           this.userLogin = this.userLogin.bind(this)
@@ -131,7 +129,6 @@
           const fileContent = document.getElementById('file-content')
           const inputSlug = document.getElementById('file-name').value
 
-          isJson = false
           filename = inputSlug
 
           path = getPath(serverUrl, userPublicKey, filename, mode)
@@ -173,7 +170,6 @@
           const fileContent = document.getElementById('file-content')
           const inputSlug = document.getElementById('file-name').value
 
-          isJson = false
           filename = inputSlug
 
           const text = fileContent.value
@@ -206,8 +202,7 @@
         }
 
         render() {
-          const { userPublicKey, filename, contentType, path, isJson } =
-            this.state
+          const { userPublicKey, filename, contentType, path } = this.state
           return html`
             <div id="container">
               <h1>NosDAV</h1>

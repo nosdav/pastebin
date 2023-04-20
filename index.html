@@ -44,13 +44,8 @@
         }
 
         updateDownloadLink() {
-          const inputSlug = document.getElementById('file-name').value
+          const filename = document.getElementById('file-name').value
           const downloadLink = document.getElementById('download')
-
-          let filename
-
-          filename = inputSlug
-
           const path = getPath(serverUrl, userPublicKey, filename, mode)
           downloadLink.setAttribute('href', path)
         }

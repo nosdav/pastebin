@@ -9,17 +9,12 @@
       {
         "@id": "#app",
         "storage": "https://nosdav.nostr.rocks",
-        "uri": "paste2.txt",
+        "uri": "paste.txt",
         "mode": "m"
       }
     </script>
 
-    <script type="module">
-      import { html, render } from './js/spux.js'
-      import { App } from './app.js'
-
-      render(html` <${App} /> `, document.body)
-    </script>
+    <script type="module" src="./app.js"></script>
   </head>
   <body></body>
 </html>

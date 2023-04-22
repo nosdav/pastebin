@@ -1,4 +1,4 @@
-export function getPath (serverUrl, userPublicKey, filename, mode) {
+export function getPath(serverUrl, userPublicKey, filename, mode) {
   if (isAbsoluteUrl(filename)) {
     return filename
   }
@@ -10,7 +10,7 @@ export function getPath (serverUrl, userPublicKey, filename, mode) {
   }
 }
 
-export function getMimeType (filename) {
+export function getMimeType(filename) {
   const extension = filename.split('.').pop().toLowerCase()
   switch (extension) {
     case 'txt':
@@ -28,7 +28,7 @@ export function getMimeType (filename) {
   }
 }
 
-export function isAbsoluteUrl (url) {
+export function isAbsoluteUrl(url) {
   try {
     new URL(url)
     return true
@@ -37,17 +37,17 @@ export function isAbsoluteUrl (url) {
   }
 }
 
-export function getQueryStringValue (key) {
+export function getQueryStringValue(key) {
   const queryString = window.location.search.substring(1)
   const queryParams = new URLSearchParams(queryString)
   return queryParams.get(key)
 }
 
-export async function generateAuthorizationHeader (path) {
+export async function generateAuthorizationHeader(path) {
   const event = {
     kind: 27235,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [['url', path]],
+    tags: [['u', path]],
     content: ''
   }
   const signedEvent = await window.nostr.signEvent(event)
@@ -58,7 +58,7 @@ export async function generateAuthorizationHeader (path) {
   return `Nostr ${btoa(JSON.stringify(signedEvent))}`
 }
 
-export async function loadFile (serverUrl, userPublicKey, filename, mode) {
+export async function loadFile(serverUrl, userPublicKey, filename, mode) {
   const path = getPath(serverUrl, userPublicKey, filename, mode)
 
   try {
@@ -78,7 +78,7 @@ export async function loadFile (serverUrl, userPublicKey, filename, mode) {
   }
 }
 
-export async function saveFile (serverUrl, userPublicKey, filename, mode, fileContent) {
+export async function saveFile(serverUrl, userPublicKey, filename, mode, fileContent) {
   const path = getPath(serverUrl, userPublicKey, filename, mode)
   const contentType = getMimeType(filename)
   const authorization = await generateAuthorizationHeader(path)

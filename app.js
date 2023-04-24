@@ -21,6 +21,24 @@ export class App extends Component {
     }
   }
 
+  // Add this function to your App component
+  toggleEncryption = async () => {
+    if (!this.state.userPublicKey) {
+      alert('Please login first');
+      return;
+    }
+
+    const { fileContent } = this.state;
+
+    try {
+      const decrypted = await window.nostr.nip04.decrypt('eb7aa0f82727a4b57cf535582107c8d0fe1c3a0a60b72bf9b272fe249db6459a', fileContent);
+      this.setState({ fileContent: decrypted });
+    } catch (error) {
+      const encrypted = await window.nostr.nip04.encrypt('eb7aa0f82727a4b57cf535582107c8d0fe1c3a0a60b72bf9b272fe249db6459a', fileContent)
+      this.setState({ fileContent: encrypted });
+    }
+  };
+
   updateFileContent = (event) => {
     this.setState({ fileContent: event.target.value })
   }
@@ -110,6 +128,7 @@ export class App extends Component {
         this.updateDownloadLink()
       }}"
         />
+        
         <label for="content">Enter Text Below</label>
 
         <textarea
@@ -124,8 +143,11 @@ export class App extends Component {
           ${userPublicKey
         ? html`
                 <button id="save" onClick="${this.save}">Save</button>
-                <button id="login" onClick="${this.userLogin}">
+                <button id="load" onClick="${this.loadFile}">
                   Load
+                </button>
+                <button id="load" onClick="${this.toggleEncryption}">
+                  🔒
                 </button>
               `
         : html` <button id="login" onClick="${this.userLogin}">

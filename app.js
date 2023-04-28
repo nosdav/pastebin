@@ -6,7 +6,7 @@ import './js/dior.js'
 export class App extends Component {
   constructor() {
     super()
-    const serverUrl = getQueryStringValue('storage') || di.data.storage || 'https://nosdav.nostr.rocks'
+    const serverUrl = getQueryStringValue('storage') || di.data.storage || 'https://nosdav.net'
     const mode = getQueryStringValue('mode') || di.data.m || 'm'
     const uri = getQueryStringValue('uri') || di.data.uri || 'paste.txt'
     this.state = {

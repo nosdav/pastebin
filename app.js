@@ -10,6 +10,14 @@ export class App extends Component {
     const serverUrl = getQueryStringValue('storage') || di.data.storage || 'https://nosdav.net'
     const mode = getQueryStringValue('mode') || di.data.m || 'm'
     const uri = getQueryStringValue('uri') || di.data.uri || 'paste.txt'
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        this.save();
+      }
+    })
+
     this.state = {
       userPublicKey: null,
       filename: uri,
@@ -21,6 +29,7 @@ export class App extends Component {
       mode: mode
     }
   }
+
 
   updateFileContent = (event) => {
     this.setState({ fileContent: event.target.value })

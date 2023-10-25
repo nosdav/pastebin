@@ -42,7 +42,9 @@ export class App extends Component {
   }
 
   updateFilename = (event) => {
-    this.setState({ filename: event.target.value })
+    this.setState({ filename: event.target.value }, () => {
+      this.updateDownloadLink();
+    });
   }
 
   userLogin = async () => {
